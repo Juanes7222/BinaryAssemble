@@ -1,0 +1,60 @@
+{
+    "R": {
+        "inst" : {
+            "add": {
+                "funct3": "000",
+                "funct7": "0000000"
+            }, 
+            "sub": {
+
+            }, 
+            "and": {
+
+            }, 
+            "or": {
+
+            }, 
+            "sll":{
+
+            }, 
+            "slt":{
+
+            }, 
+            "sltu": {
+
+            }, 
+            "sra":{
+
+            }, 
+            "srl":{
+
+            }, 
+            "xor": {
+
+            }
+        },
+        "opcode": "0110011",
+        "stmt": "expr (\\w+), (\\w+), (\\w+)$"
+    },
+
+
+
+
+
+
+
+
+
+
+    "I": {
+        "inst": ["addi", "xori", "ori", "andi", "slli", "srli", "srai", "slti", "sltiu", "lb", "lh", "lw", "lbu", "lhu", "jalr", "ecall", "ebreak"]
+        
+    },
+    "B": {
+        "inst": ["beq", "bne", "blt", "bge", "bltu", "bgeu"],
+        "opcode": ""
+    },
+    "U": ["lui", "auipc"],
+    "J": ["jal"],
+    "S": ["sb", "sh", "sw"]
+}
