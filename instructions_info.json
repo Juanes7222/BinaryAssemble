@@ -6,48 +6,68 @@
                 "funct7": "0000000"
             }, 
             "sub": {
-
+                "funct3": "000",
+                "funct7": "0100000"
             }, 
             "and": {
-
+                "funct3": "111",
+                "funct7": "0000000"
             }, 
             "or": {
-
+                "funct3": "110",
+                "funct7": "0000000"
             }, 
             "sll":{
-
+                 "funct3": "001",
+                "funct7": "0000000"
             }, 
             "slt":{
-
+                "funct3": "010",
+                "funct7": "0000000"
             }, 
             "sltu": {
-
+                 "funct3": "011",
+                "funct7": "0000000"
             }, 
             "sra":{
-
+                 "funct3": "101",
+                "funct7": "0100000"
             }, 
             "srl":{
-
+                 "funct3": "101",
+                "funct7": "0000000"
             }, 
             "xor": {
-
+                 "funct3": "100",
+                "funct7": "0000000"
             }
         },
         "opcode": "0110011",
-        "stmt": "expr (\\w+), (\\w+), (\\w+)$"
+        "stmt": "^(expr) (?P<rd>\\w+), (?P<rs1>\\w+), (?P<rs2>\\w+)$"
     },
 
-
-
-
-
-
-
-
-
-
     "I": {
-        "inst": ["addi", "xori", "ori", "andi", "slli", "srli", "srai", "slti", "sltiu", "lb", "lh", "lw", "lbu", "lhu", "jalr", "ecall", "ebreak"]
+        "inst": {
+            "addi": {}, 
+            "xori": {}, 
+            "ori": {}, 
+            "andi": {}, 
+            "slli": {},
+            "srli": {}, 
+            "srai": {}, 
+            "slti": {}, 
+            "sltiu": {}, 
+            "lb": {}, 
+            "lh": {}, 
+            "lw": {}, 
+            "lbu": {}, 
+            "lhu": {}, 
+            "jalr": {}, 
+            "ecall": {}, 
+            "ebreak": {}
+        },
+        "opcode": "0010011",
+        "stmt": "^(expr) (?P<rd>\\w+), (?P<rs1>\\w+), (?P<imm>\\d)"
         
     },
     "B": {
