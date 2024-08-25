@@ -67,7 +67,7 @@
             "ebreak": {}
         },
         "opcode": "0010011",
-        "stmt": "^(expr) (?P<rd>\\w+), (?P<rs1>\\w+), (?P<imm>\\d)"
+        "stmt": "^(expr) (?P<rd>\\w+), (?P<rs1>\\w+), (?P<imm>\\d+)"
         
     },
     "B": {
