@@ -43,31 +43,102 @@
             }
         },
         "opcode": "0110011",
-        "stmt": "^(expr) (?P<rd>\\w+), (?P<rs1>\\w+), (?P<rs2>\\w+)$"
+        "stmt": ["^(expr) (?P<rd>\\w+), (?P<rs1>\\w+), (?P<rs2>\\w+)$"]
     },
 
     "I": {
         "inst": {
-            "addi": {}, 
-            "xori": {}, 
-            "ori": {}, 
-            "andi": {}, 
-            "slli": {},
-            "srli": {}, 
-            "srai": {}, 
-            "slti": {}, 
-            "sltiu": {}, 
-            "lb": {}, 
-            "lh": {}, 
-            "lw": {}, 
-            "lbu": {}, 
-            "lhu": {}, 
-            "jalr": {}, 
-            "ecall": {}, 
-            "ebreak": {}
+            "addi": {
+                "opcode": "0010011",
+                "funct3": "000",
+                "type": 0
+            }, 
+            "xori": {
+                "opcode": "0010011",
+                "funct3": "100",
+                "type": 0
+
+            }, 
+            "ori": {
+                "opcode": "0010011",
+                "funct3": "110"
+
+            }, 
+            "andi": {
+                "opcode": "0010011",
+                "funct3": "111"
+            }, 
+            "slli": {
+                "opcode": "0010011",
+                "funct3": "001"
+
+            },
+            "srli": {
+                "opcode": "0010011",
+                "funct3": "101"
+
+            }, 
+            "srai": {
+                "opcode": "0010011",
+                "funct3": "101"
+
+            }, 
+            "slti": {
+                "opcode": "0010011",
+                "funct3": "010"
+
+            }, 
+            "sltiu": {
+                "opcode": "0010011",
+                "funct3": "011"
+
+            }, 
+            "lb": {
+                "opcode": "0000011",
+                "funct3": "000"
+
+            }, 
+            "lh": {
+                "opcode": "0000011",
+                "funct3": "001"
+
+            }, 
+            "lw": {
+                "opcode": "0000011",
+                "funct3": "010"
+
+            }, 
+            "lbu": {
+                "opcode": "0000011",
+                "funct3": "100"
+
+            }, 
+            "lhu": {
+                "opcode": "0000011",
+                "funct3": "101"
+
+            }, 
+            "jalr": {
+                "opcode": "1100111",
+                "funct3": "000"
+
+            }, 
+            "ecall": {
+                "opcode": "1110011",
+                "funct3": "000"
+
+            }, 
+            "ebreak": {
+                "opcode": "1110011",
+                "funct3": "000"
+
+            }
         },
         "opcode": "0010011",
-        "stmt": "^(expr) (?P<rd>\\w+), (?P<rs1>\\w+), (?P<imm>\\d+)"
+        "stmt": [
+            "^(expr)\\s+(?P<rd>\\w+),\\s*(?P<rs1>\\w+),\\s*(?P<imm>[-+]?\\d+)",
+            "^(expr)\\s+(?P<rd>\\w+),\\s*(?P<imm>[-+]?\\d+\\(?P<imm>\\w+\\)))"
+        ]
         
     },
     "B": {

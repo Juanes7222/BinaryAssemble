@@ -1,14 +1,18 @@
 import json
 import re
 
+# "(expr)\\s+(?P<rd>\\w+),\\s*((?P<rs1>(\\w+))|(?P<imm>([+-]?\\d+\\(?P<rs1>(\\w+)\\))))?(,)?\\s*(?P<imm>[+-]\\d+)?$"
+
+
 INSTRUCTIONS_FILE = "./instructions_info.json"
+LABELS = {}
 
 def get_instructions_info():
     with open(INSTRUCTIONS_FILE, "r") as f:
         info = json.load(f)
     return info
 
-INFO = get_instructions_info() 
+INFO: dict = get_instructions_info() 
 def read_file(file):
     with open(file, "r", encoding="utf-8") as f:
         text_file = f.read()
@@ -17,18 +21,27 @@ def read_file(file):
 def sep_lines(text: str):
     return text.split("\n")
 
-def regular_expression(info):
-    instructions = "|".join(info["inst"])
-    return info["stmt"].replace("expr", f"?P<operation>{instructions}")
+def get_instruction(instruction: str):
+    inst_sep = instruction.split(" ")
+    return inst_sep[0]
 
-def tokenize(expr, info):
-    expression = regular_expression(info)
+def type_instruction(instruction):
+    for type_i, data in INFO.items():
+        if instruction in data.keys():
+            return type_i       
+
+def regular_expression(instrs: list, expression: str):
+    instructions = "|".join(instrs)
+    return expression.replace("expr", f"?P<operation>{instructions}")
+
+def tokenize(instruction, expression):
+    # expression = regular_expression(info)
     pattern = re.compile(fr"{expression}")
-    match_instruction = pattern.match(expr)
+    match_instruction = pattern.match(instruction)
     if match_instruction:        
         return match_instruction.groupdict()
     else:
-        raise ValueError(f"Invalid instruction: {expr}")
+        raise ValueError(f"Invalid instruction: {instruction}")
 
 def decimal_to_binary(number, lenght=4):
     # binary = bin(int(number))
@@ -61,7 +74,46 @@ def r_instruction(instruction: dict, info):
     
     return binary
 
-info = INFO["R"]
-inst = tokenize("add s3, s2, s4", info)
+def i_instruction(instruction: dict, info):
+    ...
+    
+def b_instruction():...
+def u_instruction():...
+def j_instruction():...
+def s_instruction():...
 
-print(r_instruction(inst, info))
+def distance_label(label, line):
+    label_line = LABELS.get(label)
+    if label_line:
+        distance = label_line - line
+        return distance*4
+    raise Exception(f"Invalid Label: {label}")
+
+def confirm_label(label):
+    match = tokenize(label, "?P<label>\w+:")
+    label_name = match.get("label")
+    if label_name:
+        return label_name    
+
+def get_info(instruction, line=None):
+    inst = get_instruction(instruction)
+    t_inst = type_instruction(inst)
+    if t_inst:
+        return INFO[t_inst]
+    else:
+        label = confirm_label(inst)
+        if label:
+            LABELS[label] = line+1
+        else:
+            raise ValueError(f"Invalid instruction: {instruction} --> Line: {line}")
+
+# TODO: terminar la funcion del main y las instrucciones
+
+def main(instruction):...
+
+info = INFO["I"]
+expr = regular_expression(info, )
+inst = tokenize("addi s3, s2, 12", info)
+print(inst)
+
+# print(r_instruction(inst, info))
