@@ -43,7 +43,7 @@
             }
         },
         "opcode": "0110011",
-        "stmt": ["^(expr) (?P<rd>\\w+), (?P<rs1>\\w+), (?P<rs2>\\w+)$"]
+        "re": ["^(expr) (?P<rd>\\w+), (?P<rs1>\\w+), (?P<rs2>\\w+)$"]
     },
 
     "I": {
@@ -134,17 +134,51 @@
 
             }
         },
-        "stmt": [
+        "re": [
             "^(expr)\\s+(?P<rd>\\w+),\\s*(?P<rs1>\\w+),\\s*(?P<imm>[-+]?\\d+)",
             "^(expr)\\s+(?P<rd>\\w+),\\s*(?P<imm>[-+]?\\d+\\(?P<imm>\\w+\\)))"
         ]
         
     },
     "B": {
-        "inst": ["beq", "bne", "blt", "bge", "bltu", "bgeu"],
-        "opcode": ""
+        "inst": {
+            "beq": {
+                "funct3": "000"
+            }, 
+            "bne": {
+                "funct3": "001"
+
+            }, 
+            "blt":{
+                "funct3": "100"
+
+            }, 
+            "bge": {
+                "funct3": "101"
+
+            }, 
+            "bltu": {
+                "funct3": "110"
+
+            }, 
+            "bgeu": {
+                "funct3": "111"
+
+            }
+        },
+        "opcode": "1100011",
+        "re": [
+            "^(expr) (?P<rs1>\\w+), (?P<rs2>\\w+), (?P<imm>\\w+)$"
+        ]
     },
-    "U": ["lui", "auipc"],
+    "U": {
+        "lui": {
+            "opcode": "0110111"
+        }, 
+        "auipc": {
+            "opcode": "0010111"
+        }
+    },
     "J": ["jal"],
     "S": {
         "sb": {

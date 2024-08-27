@@ -112,9 +112,38 @@ def s_instruction(instruction: dict, info):
     
     return binary
 
-def b_instruction():
-    ...
-def u_instruction():...
+def u_instruction(instruction: dict, info):
+    imm = instruction["imm"]
+    imm = decimal_to_binary(imm, 20)
+    
+    rd = instruction["rd"]
+    operation = instruction["operation"]
+    opcode = info[operation]["opcode"]
+    
+    binary = f"{imm}{rd}{opcode}"
+    
+    return binary
+    
+    
+def b_instruction(instruction: dict, info, line):
+    rs1 = instruction["rs1"]
+    rs1 = registers(rs1)
+    
+    rs2 = instruction["rs2"]
+    rs2 = registers(rs2)
+    
+    imm = instruction["imm"]
+    imm = distance_label(imm, line)
+    imm = decimal_to_binary(imm, 12)
+    
+    operation = instruction["operation"]
+    funct3 = info[operation]["funct3"]
+    opcode = info["opcode"]
+    
+    binary = f"{imm[0]}{imm[2:7]}{rs2}{rs1}{funct3}{imm[8:11]}{imm[1]}{opcode}"
+    
+    return binary
+
 def j_instruction():...
 
 def distance_label(label, line):
@@ -122,7 +151,7 @@ def distance_label(label, line):
     if label_line:
         distance = label_line - line
         return distance*4
-    raise Exception(f"Invalid Label: {label}")
+    raise ValueError(f"Invalid Label: {label} --> Line: {line}")
 
 def confirm_label(label):
     match = tokenize(label, "?P<label>\\w+:")
@@ -150,6 +179,7 @@ def main(instruction):...
 # expr = regular_expression(info, )
 # inst = tokenize("addi s3, s2, 12", info)
 # print(inst)
-
-print(decimal_to_binary(87, 4))
+# val = decimal_to_binary(-87, 12)
+# print(val)
+# print(len(val))
 # print(r_instruction(inst, info))
