@@ -1,8 +1,5 @@
 import json
 import re
-import sys
-# "(expr)\\s+(?P<rd>\\w+),\\s*((?P<rs1>(\\w+))|(?P<imm>([+-]?\\d+\\(?P<rs1>(\\w+)\\))))?(,)?\\s*(?P<imm>[+-]\\d+)?$"
-
 
 INSTRUCTIONS_FILE = "./instructions_info.json"
 LABELS = {}
@@ -20,7 +17,8 @@ def read_file(file):
     return text_file
 
 def sep_lines(text: str):
-    return text.split("\n")
+    list_text = text.split("\n")
+    return list(filter(None, list_text))
 
 def get_instruction(instruction: str):
     inst_sep = instruction.split(" ")
@@ -36,7 +34,6 @@ def regular_expression(instrs: list, expression: str):
     return expression.replace("expr", f"?P<operation>{instructions}")
 
 def tokenize(instruction, expression):
-    # expression = regular_expression(info)
     pattern = re.compile(fr"{expression}")
     match_instruction = pattern.match(instruction)
     if match_instruction:        
@@ -47,7 +44,6 @@ def tokenize(instruction, expression):
 def decimal_to_binary(number: int | str, length=4):
     binary = int(number).to_bytes(length=4, signed=True)
     normal_binary = ''.join(format(byte, '08b') for byte in binary)
-    # print(normal_binary)
     return normal_binary[-length:]
 
 def get_number(reg):
@@ -73,7 +69,7 @@ def r_instruction(instruction: dict, info):
     func7 = info["inst"][operation]["funct7"]
     opcode = info["opcode"]
     
-    binary = f"{func7}-{rs2}-{rs1}-{func3}-{rd}-{opcode}"
+    binary = f"{func7}{rs2}{rs1}{func3}{rd}{opcode}"
     
     return binary
 
@@ -118,6 +114,7 @@ def u_instruction(instruction: dict, info):
     imm = decimal_to_binary(imm, 20)
     
     rd = instruction["rd"]
+    rd = registers(rd)
     operation = instruction["operation"]
     opcode = info["inst"][operation]["opcode"]
     
@@ -145,7 +142,18 @@ def b_instruction(instruction: dict, info, line):
     
     return binary
 
-def j_instruction():...
+def j_instruction(instruction: dict, info):
+    label = instruction["label"]
+    label = decimal_to_binary(label, 20)
+    
+    rd = instruction["rd"]
+    rd = registers(rd)
+    
+    operation = instruction["operation"]
+    opcode = info["inst"][operation]["opcode"]
+    
+    binary = f"{label[0]}{label[9:]}{label[1:8]}{rd}{opcode}"
+    return binary
 
 def distance_label(label, line):
     label_line = LABELS.get(label)
@@ -155,11 +163,10 @@ def distance_label(label, line):
     raise ValueError(f"Invalid Label: {label} --> Line: {line}")
 
 def confirm_label(label):
-    match = tokenize(label, "?P<label>\\w+:")
-    label_name = match.get("label")
-    if label_name:
-        return label_name    
-
+    match = re.findall("(\w+):", label)
+    if match:
+        return match[0]
+    
 def get_info(instruction, line=None):
     inst = get_instruction(instruction)
     t_inst = type_instruction(inst)
@@ -167,11 +174,15 @@ def get_info(instruction, line=None):
         return INFO[t_inst], t_inst
     else:
         label = confirm_label(inst)
-        if label:
-            LABELS[label] = line+1
-        else:
+        if not label:
             raise ValueError(f"Invalid instruction: {instruction} --> Line: {line}")
     return None, None
+
+def get_all_labels(instructions: str):
+    for i, instruction in enumerate(instructions, 1):
+        label = confirm_label(instruction)
+        if label:
+            LABELS[label] = i+1
 
 def instruction_manager(instruction, line):
     info, t_inst = get_info(instruction, line)
@@ -190,17 +201,18 @@ def instruction_manager(instruction, line):
             binary = u_instruction(token_instruction, info)
         elif t_inst == "J":
             binary = j_instruction(token_instruction, info)
-            
         return binary
 
 def main(file):
     instructions_file = read_file(file)
     instructions = sep_lines(instructions_file)
+    get_all_labels(instructions)
     binary_instructions = []
     
     for line, instruction in enumerate(instructions, 1):
         binary = instruction_manager(instruction, line)
-        binary_instructions.append(binary)
+        if binary:
+            binary_instructions.append(binary)
     return binary_instructions
 
 print(main("./instruction.rsv"))
