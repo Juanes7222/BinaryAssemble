@@ -1,32 +1,34 @@
 label1:
 lb x1, 0(x2)     # Cargar byte
-lh x3, 4(x4)     # Cargar halfword
+lh x3, -4(x4)     # Cargar halfword
 lw x5, 8(x6)     # Cargar word
 lbu x7, 12(x8)   # Cargar byte sin extensión de signo
 lhu x9, 16(x10)  # Cargar halfword sin extensión de signo
-sb x11, 20(x12)  # Almacenar byte
+sb x11, -20(x12)  # Almacenar byte
 sh x13, 24(x14)  # Almacenar halfword
 sw x15, 28(x16)  # Almacenar word
+
 label2:
 add x1, x2, x3   # Suma
 sub x4, x5, x6   # Resta
-mul x7, x8, x9   # Multiplicación
-div x10, x11, x12 # División
-rem x13, x14, x15 # Resto
 and x16, x17, x18 # AND
 or x19, x20, x21  # OR
 xor x22, x23, x24 # XOR
 sll x25, x26, 5   # Shift left logical
 srl x27, x28, 3   # Shift right logical
 slt x29, x30, x31 # Set less than
+
 label3:
 beq x1, x2, label1   # Branch equal
 bne x3, x4, label2   # Branch not equal
 blt x5, x6, label3   # Branch less than
 bge x7, x8, label4   # Branch greater than or equal
-jal label5           # Jump and link
-jalr x9, x10, 0      # Jump and link register
-ret                  # Return
+jal x4, label1           # Jump and link
+jalr x9, 0(x3)      # Jump and link register
+
 label4:
-auipc x4, 0x100   # Add upper immediate to PC
-lui x5, 0x200     # Load upper immediate
+auipc x4, 100   # Add upper immediate to PC
+lui x5, 200     # Load upper immediate
+
+label5:
+addi x29, x28, 0x10

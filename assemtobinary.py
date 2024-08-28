@@ -41,7 +41,10 @@ def tokenize(instruction, expression):
     else:
         raise ValueError(f"Invalid instruction: {instruction}")
 
-def decimal_to_binary(number: int | str, length=4):
+def number_to_binary(number: int | str, length=4):
+    if isinstance(number, str):
+        if "0x" in number:
+            number = int(number, 16)
     binary = int(number).to_bytes(length=4, signed=True)
     normal_binary = ''.join(format(byte, '08b') for byte in binary)
     return normal_binary[-length:]
@@ -51,7 +54,7 @@ def get_number(reg):
 
 def registers(reg):
     num_reg = get_number(reg)
-    return decimal_to_binary(num_reg, 5)
+    return number_to_binary(num_reg, 5)
 
 def r_instruction(instruction: dict, info):
     rd = instruction["rd"]
@@ -81,7 +84,7 @@ def i_instruction(instruction: dict, info):
     rs1 = registers(rs1)
     
     imm = instruction["imm"]
-    imm = decimal_to_binary(imm, 12)
+    imm = number_to_binary(imm, 12)
     operation = instruction["operation"]
     
     opcode = info["inst"][operation]["opcode"]
@@ -100,18 +103,18 @@ def s_instruction(instruction: dict, info):
     rs2 = registers(rs2)
     
     imm = instruction["imm"]
-    imm = decimal_to_binary(imm)
+    imm = number_to_binary(imm, 12)
     
     operation = instruction["operation"]
     funct3 = info["inst"][operation]["funct3"]
-    opcode = info["inst"]["opcode"]
-    binary = f"{imm[5:11]}{rs2}{funct3}{imm[0:4]}{opcode}"
+    opcode = info["opcode"]
+    binary = f"{imm[0:7]}{rs2}{rs1}{funct3}{imm[7:]}{opcode}"
     
     return binary
 
 def u_instruction(instruction: dict, info):
     imm = instruction["imm"]
-    imm = decimal_to_binary(imm, 20)
+    imm = number_to_binary(imm, 20)
     
     rd = instruction["rd"]
     rd = registers(rd)
@@ -132,27 +135,27 @@ def b_instruction(instruction: dict, info, line):
     
     label = instruction["label"]
     label = distance_label(label, line)
-    label = decimal_to_binary(label, 12)
+    label = number_to_binary(label, 12)
     
     operation = instruction["operation"]
     funct3 = info["inst"][operation]["funct3"]
     opcode = info["opcode"]
     
-    binary = f"{label[0]}{label[2:7]}{rs2}{rs1}{funct3}{label[8:11]}{label[1]}{opcode}"
+    binary = f"{label[0]}{label[2:8]}{rs2}{rs1}{funct3}{label[8:]}{label[1]}{opcode}"
     
     return binary
 
 def j_instruction(instruction: dict, info):
     label = instruction["label"]
-    label = decimal_to_binary(label, 20)
+    line_label = LABELS[label]
+    label = number_to_binary(line_label, 20)
     
     rd = instruction["rd"]
     rd = registers(rd)
     
-    operation = instruction["operation"]
-    opcode = info["inst"][operation]["opcode"]
+    opcode = info["opcode"]
     
-    binary = f"{label[0]}{label[9:]}{label[1:8]}{rd}{opcode}"
+    binary = f"{label[0]}{label[10:]}{label[9]}{label[1:9]}{rd}{opcode}"
     return binary
 
 def distance_label(label, line):
@@ -163,7 +166,7 @@ def distance_label(label, line):
     raise ValueError(f"Invalid Label: {label} --> Line: {line}")
 
 def confirm_label(label):
-    match = re.findall("(\w+):", label)
+    match = re.findall(r"(\w+):", label)
     if match:
         return match[0]
     
@@ -212,9 +215,18 @@ def main(file):
     for line, instruction in enumerate(instructions, 1):
         binary = instruction_manager(instruction, line)
         if binary:
-            binary_instructions.append(binary)
+            binary_instructions.append([binary, instruction])
     return binary_instructions
 
-print(main("./instruction.rsv"))
+def valid(binary_instructions: list[str]):
+    for i, element in enumerate(binary_instructions):
+        binary = element[0].replace("-", "")
+        if len(binary) != 32:
+            print(f"Instruccion invalida: {i}\nBinario: {element[0]} Instruccion: {element[1]} len:{len(element[0])}")
+
+valid(main("./instruction.rsv"))
+
+values = ["00000000000000000000001011101111", "00000000100000000000001011101111",
+          ]
             
 #TODO: corregir las expresiones regulares referentes a los imm() y terminar de validar
