@@ -1,8 +1,6 @@
 import json
 import re
-
-INSTRUCTIONS_FILE = "./instructions_info.json"
-LABELS = {}
+from values import INSTRUCTIONS_FILE, LABELS, EQUIVALENCES
 
 def get_instructions_info():
     with open(INSTRUCTIONS_FILE, "r") as f:
@@ -53,6 +51,11 @@ def get_number(reg):
     return int(re.search(r'\d+', reg).group())
 
 def registers(reg):
+    if not "x" in reg:
+        x_reg = EQUIVALENCES.get(reg)
+        if not x_reg:
+            raise ValueError(f"Invalid register: {reg}")
+        reg = x_reg
     num_reg = get_number(reg)
     return number_to_binary(num_reg, 5)
 
@@ -162,7 +165,7 @@ def distance_label(label, line):
     label_line = LABELS.get(label)
     if label_line:
         distance = label_line - line
-        return distance*4
+        return distance*32
     raise ValueError(f"Invalid Label: {label} --> Line: {line}")
 
 def confirm_label(label):
@@ -181,11 +184,12 @@ def get_info(instruction, line=None):
             raise ValueError(f"Invalid instruction: {instruction} --> Line: {line}")
     return None, None
 
-def get_all_labels(instructions: str):
-    for i, instruction in enumerate(instructions, 1):
+def get_all_labels(instructions: list):
+    for i, instruction in enumerate(instructions.copy(), 1):
         label = confirm_label(instruction)
         if label:
             LABELS[label] = i+1
+            instructions.remove(instruction)
 
 def instruction_manager(instruction, line):
     info, t_inst = get_info(instruction, line)
@@ -224,9 +228,9 @@ def valid(binary_instructions: list[str]):
         if len(binary) != 32:
             print(f"Instruccion invalida: {i}\nBinario: {element[0]} Instruccion: {element[1]} len:{len(element[0])}")
 
-valid(main("./instruction.rsv"))
+binary_instructions = main("./instruction.S")
+print(binary_instructions)
+valid(binary_instructions)
 
 values = ["00000000000000000000001011101111", "00000000100000000000001011101111",
           ]
-            
-#TODO: corregir las expresiones regulares referentes a los imm() y terminar de validar

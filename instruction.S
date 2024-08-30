@@ -14,8 +14,8 @@ sub x4, x5, x6   # Resta
 and x16, x17, x18 # AND
 or x19, x20, x21  # OR
 xor x22, x23, x24 # XOR
-sll x25, x26, 5   # Shift left logical
-srl x27, x28, 3   # Shift right logical
+sll x25, x26, a5   # Shift left logical
+srl x27, x28, s0   # Shift right logical
 slt x29, x30, x31 # Set less than
 
 label3:
