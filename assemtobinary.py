@@ -162,10 +162,10 @@ def j_instruction(instruction: dict, info):
     return binary
 
 def distance_label(label, line):
-    label_line = LABELS.get(label)
-    if label_line:
+    label_line = LABELS.get(label, False)
+    if isinstance(label_line, int):
         distance = label_line - line
-        return distance*32
+        return distance*4
     raise ValueError(f"Invalid Label: {label} --> Line: {line}")
 
 def confirm_label(label):
@@ -185,11 +185,14 @@ def get_info(instruction, line=None):
     return None, None
 
 def get_all_labels(instructions: list):
-    for i, instruction in enumerate(instructions.copy(), 1):
+    i = 0
+    for instruction in instructions.copy():
         label = confirm_label(instruction)
         if label:
-            LABELS[label] = i+1
+            LABELS[label] = i
+            i -= 1
             instructions.remove(instruction)
+        i += 1
 
 def instruction_manager(instruction, line):
     info, t_inst = get_info(instruction, line)
@@ -216,7 +219,7 @@ def main(file):
     get_all_labels(instructions)
     binary_instructions = []
     
-    for line, instruction in enumerate(instructions, 1):
+    for line, instruction in enumerate(instructions, 0):
         binary = instruction_manager(instruction, line)
         if binary:
             binary_instructions.append([binary, instruction])
@@ -229,8 +232,13 @@ def valid(binary_instructions: list[str]):
             print(f"Instruccion invalida: {i}\nBinario: {element[0]} Instruccion: {element[1]} len:{len(element[0])}")
 
 binary_instructions = main("./instruction.S")
-print(binary_instructions)
+# print(binary_instructions)
 valid(binary_instructions)
 
-values = ["00000000000000000000001011101111", "00000000100000000000001011101111",
-          ]
+values = ['00000000000000010000000010000011', '11111111110000100001000110000011', '00000000100000110010001010000011', '00000000110001000100001110000011', '00000001000001010101010010000011', '11111110101101100000011000100011', '00000000110101110001110000100011', '00000000111110000010111000100011', '00000000001100010000000010110011', '01000000011000101000001000110011', '00000001001010001111100000110011', '00000001010110100110100110110011', '00000001100010111100101100110011', '00000000111111010001110010110011', '00000000100011100101110110110011', '00000001111111110010111010110011', '11111100001000001000000011100011', '11111100010000011001111011100011', '11111110011000101100110011100011', '00000000100000111101011001100011', '11111011000111111111001001101111', '00000000000001001000000011100111', '00000000000001100100001000010111', '00000000000011001000001010110111', '00000001000011100000111010010011']
+
+for value, binary in zip(values, binary_instructions):
+    if value != binary[0]:
+        print(f"Diferent value: {binary[0]}\nExpected: \t\t  {value}\nInstruction: {binary[1]}")
+        
+print(LABELS)
