@@ -138,27 +138,27 @@ def b_instruction(instruction: dict, info, line):
     
     label = instruction["label"]
     label = distance_label(label, line)
-    label = number_to_binary(label, 12)
+    label = number_to_binary(label, 13)
     
     operation = instruction["operation"]
     funct3 = info["inst"][operation]["funct3"]
     opcode = info["opcode"]
     
-    binary = f"{label[0]}{label[2:8]}{rs2}{rs1}{funct3}{label[8:]}{label[1]}{opcode}"
+    binary = f"{label[0]}{label[2:8]}{rs2}{rs1}{funct3}{label[8:12]}{label[1]}{opcode}"
     
     return binary
 
-def j_instruction(instruction: dict, info):
+def j_instruction(instruction: dict, info, line):
     label = instruction["label"]
-    line_label = LABELS[label]
-    label = number_to_binary(line_label, 20)
-    
+    label = distance_label(label, line)
+    label = number_to_binary(label, 21)
+        
     rd = instruction["rd"]
     rd = registers(rd)
     
     opcode = info["opcode"]
     
-    binary = f"{label[0]}{label[10:]}{label[9]}{label[1:9]}{rd}{opcode}"
+    binary = f"{label[0]}{label[10:20]}{label[9]}{label[1:9]}{rd}{opcode}"
     return binary
 
 def distance_label(label, line):
@@ -210,11 +210,16 @@ def instruction_manager(instruction, line):
         elif t_inst == "U":
             binary = u_instruction(token_instruction, info)
         elif t_inst == "J":
-            binary = j_instruction(token_instruction, info)
+            binary = j_instruction(token_instruction, info, line)
         return binary
 
+def clean_instructions(instructions: str):
+    result = re.sub(r'#.*$', '', instructions, flags=re.MULTILINE)
+    return result
+    
 def main(file):
     instructions_file = read_file(file)
+    instructions_file = clean_instructions(instructions_file)
     instructions = sep_lines(instructions_file)
     get_all_labels(instructions)
     binary_instructions = []
@@ -239,6 +244,5 @@ values = ['00000000000000010000000010000011', '11111111110000100001000110000011'
 
 for value, binary in zip(values, binary_instructions):
     if value != binary[0]:
-        print(f"Diferent value: {binary[0]}\nExpected: \t\t  {value}\nInstruction: {binary[1]}")
+        print(f"Diferent value: {binary[0]}\nExpected: \t\t{value}\nInstruction: {binary[1]}")
         
-print(LABELS)

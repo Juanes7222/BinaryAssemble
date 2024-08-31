@@ -8,6 +8,8 @@ sb x11, -20(x12)  # Almacenar byte
 sh x13, 24(x14)  # Almacenar halfword
 sw x15, 28(x16)  # Almacenar word
 
+# Ejemplo de comentario
+
 label2:
 add x1, x2, x3   # Suma
 sub x4, x5, x6   # Resta
@@ -24,7 +26,7 @@ bne x3, x4, label2   # Branch not equal
 blt x5, x6, label3   # Branch less than
 bge x7, x8, label4   # Branch greater than or equal
 jal x4, label1           # Jump and link
-jalr x9, 0(x3)      # Jump and link register
+jalr x1, 0(x9)      # Jump and link register
 
 label4:
 auipc x4, 100   # Add upper immediate to PC
