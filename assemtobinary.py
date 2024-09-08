@@ -1,13 +1,15 @@
+from values import INSTRUCTIONS_FILE, LABELS, EQUIVALENCES, PSEUDOINSTRUCTIONS_FILE, BINARY_INSTRUCTIONS
+from functools import singledispatch
 import json
 import re
-from values import INSTRUCTIONS_FILE, LABELS, EQUIVALENCES
 
-def get_instructions_info():
-    with open(INSTRUCTIONS_FILE, "r") as f:
+def get_instructions_info(file):
+    with open(file, "r") as f:
         info = json.load(f)
     return info
 
-INFO: dict = get_instructions_info()
+INFO: dict = get_instructions_info(INSTRUCTIONS_FILE)
+PSEUDOINSTRUCTIONS: dict = get_instructions_info(PSEUDOINSTRUCTIONS_FILE)
 
 def read_file(file):
     with open(file, "r", encoding="utf-8") as f:
@@ -46,6 +48,9 @@ def number_to_binary(number: int | str, length=4):
     binary = int(number).to_bytes(length=4, signed=True)
     normal_binary = ''.join(format(byte, '08b') for byte in binary)
     return normal_binary[-length:]
+
+def bin_to_decimal(binary: str):
+    return int("0b" + binary, 2)
 
 def get_number(reg):
     return int(re.search(r'\d+', reg).group())
@@ -98,7 +103,7 @@ def i_instruction(instruction: dict, info):
         binary[1] = "1"
     return binary
     
-def s_instruction(instruction: dict, info):    
+def s_instruction(instruction: dict, info):
     rs1 = instruction["rs1"]
     rs1 = registers(rs1)
     
@@ -162,7 +167,7 @@ def j_instruction(instruction: dict, info, line):
     return binary
 
 def distance_label(label, line):
-    label_line = LABELS.get(label, False)
+    label_line = LABELS.get(label, "False")
     if isinstance(label_line, int):
         distance = label_line - line
         return distance*4
@@ -181,7 +186,11 @@ def get_info(instruction, line=None):
     else:
         label = confirm_label(inst)
         if not label:
-            raise ValueError(f"Invalid instruction: {instruction} --> Line: {line}")
+            match, equivalence = is_pseudo(instruction)
+            if match != None:
+                compile_pseudo(equivalence, match, line)
+            else:
+                raise ValueError(f"Invalid instruction: {instruction} --> Line: {line}")
     return None, None
 
 def get_all_labels(instructions: list):
@@ -193,12 +202,64 @@ def get_all_labels(instructions: list):
             i -= 1
             instructions.remove(instruction)
         i += 1
+        
+def is_pseudo(instruction: str):
+    for pattern, equivalence in PSEUDOINSTRUCTIONS.items():
+        match = re.match(fr"{pattern}", instruction)
+        if match:
+            return match.groupdict(), equivalence
+    return False, False
+
+def cut_symbol(symbol: str, line=None):
+    try:
+        symbol = distance_label(symbol,line)
+    except ValueError:
+        pass
+        # if "0x" in symbol:
+        #     symbol = int(symbol, 16)
+        # else:
+        #     symbol = int(symbol)
+    symbol = number_to_binary(symbol, 32)
+    new_symbol = {
+        "symbol1": bin_to_decimal(symbol[:21]),
+        "symbol2": bin_to_decimal(symbol[21:]),
+    }
+    # mask = (1 << 12) - 1
+    # new_symbol = {
+    #     "symbol1": symbol >> 20,
+    #     "symbol2": symbol & mask,
+    # }
+    return new_symbol
+
+@singledispatch
+def compile_pseudo(equivalence: str, match: dict, line: str|int):
+    equivalence = equivalence.format(**match)
+    binary = instruction_manager(equivalence, line)
+    BINARY_INSTRUCTIONS.append(binary)
+
+@compile_pseudo.register
+def _(equivalence: list, match: dict, line: str|int):
+    equivalence = "|".join(equivalence)
+    match.update(cut_symbol(match["symbol"], line))
+    del match["symbol"]
+    equivalence = equivalence.format(**match)
+    for eq in equivalence.split("|"):
+        binary = instruction_manager(eq, line)
+        BINARY_INSTRUCTIONS.append(binary)
 
 def instruction_manager(instruction, line):
     info, t_inst = get_info(instruction, line)
     if info:
         re = regular_expression(info["inst"].keys(), info["re"])
-        token_instruction = tokenize(instruction, re)
+        try:
+            token_instruction = tokenize(instruction, re)
+        except ValueError as e:
+            match, equivalence = is_pseudo(instruction)
+            if match:
+                compile_pseudo(equivalence, match, line)
+                return
+            else:
+                raise e
         if t_inst == "R":
             binary = r_instruction(token_instruction, info)
         elif t_inst == "I1" or t_inst == "I2":
@@ -222,13 +283,11 @@ def main(file):
     instructions_file = clean_instructions(instructions_file)
     instructions = sep_lines(instructions_file)
     get_all_labels(instructions)
-    binary_instructions = []
     
     for line, instruction in enumerate(instructions, 0):
         binary = instruction_manager(instruction, line)
         if binary:
-            binary_instructions.append([binary, instruction])
-    return binary_instructions
+            BINARY_INSTRUCTIONS.append([binary, instruction])
 
 def valid(binary_instructions: list[str]):
     for i, element in enumerate(binary_instructions):
@@ -246,3 +305,4 @@ values = ['00000000000000010000000010000011', '11111111110000100001000110000011'
 #     if value != binary[0]:
 #         print(f"Diferent value: {binary[0]}\nExpected: \t\t{value}\nInstruction: {binary[1]}")
         
+#TODO: verificar como se hacen la instruccion "jalr"

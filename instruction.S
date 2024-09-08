@@ -34,3 +34,8 @@ lui x5, 200     # Load upper immediate
 
 label5:
 addi x29, x28, 0x10
+nop
+seqz x5, x3
+la x3, 345
+sb x4, 76, x2
+call label4
