@@ -1,5 +1,6 @@
 from values import INSTRUCTIONS_FILE, LABELS, EQUIVALENCES, PSEUDOINSTRUCTIONS_FILE, BINARY_INSTRUCTIONS
 from functools import singledispatch
+from bitstring import Bits, BitArray
 import json
 import re
 
@@ -45,12 +46,13 @@ def number_to_binary(number: int | str, length=4):
     if isinstance(number, str):
         if "0x" in number:
             number = int(number, 16)
-    binary = int(number).to_bytes(length=4, signed=True)
+    binary = int(number).to_bytes(length=5, signed=True)
     normal_binary = ''.join(format(byte, '08b') for byte in binary)
     return normal_binary[-length:]
 
 def bin_to_decimal(binary: str):
-    return int("0b" + binary, 2)
+    bin = Bits(bin=binary)
+    return bin.int
 
 def get_number(reg):
     return int(re.search(r'\d+', reg).group())
@@ -181,7 +183,10 @@ def confirm_label(label):
 def get_info(instruction, line=None):
     inst = get_instruction(instruction)
     t_inst = type_instruction(inst)
+    
     if t_inst:
+        if inst == "jalr":
+            return [INFO["I2"], INFO["I3"]], t_inst
         return INFO[t_inst], t_inst
     else:
         label = confirm_label(inst)
@@ -219,10 +224,13 @@ def cut_symbol(symbol: str, line=None):
         #     symbol = int(symbol, 16)
         # else:
         #     symbol = int(symbol)
-    symbol = number_to_binary(symbol, 32)
+    symbol = BitArray(uint=int(symbol), length=32)
+    print(symbol.int)
+    symbol <<= 12
+    # symbol = number_to_binary(symbol, 32)
     new_symbol = {
-        "symbol1": bin_to_decimal(symbol[:21]),
-        "symbol2": bin_to_decimal(symbol[21:]),
+        "symbol1": bin_to_decimal(symbol.bin[:20]),
+        "symbol2": bin_to_decimal(symbol.bin[:12]),
     }
     # mask = (1 << 12) - 1
     # new_symbol = {
@@ -247,31 +255,49 @@ def _(equivalence: list, match: dict, line: str|int):
         binary = instruction_manager(eq, line)
         BINARY_INSTRUCTIONS.append(binary)
 
-def instruction_manager(instruction, line):
-    info, t_inst = get_info(instruction, line)
-    if info:
+def special_instruction(instruction, info_instructions):
+    for i, info in enumerate(info_instructions):
         re = regular_expression(info["inst"].keys(), info["re"])
         try:
             token_instruction = tokenize(instruction, re)
-        except ValueError as e:
-            match, equivalence = is_pseudo(instruction)
-            if match:
-                compile_pseudo(equivalence, match, line)
-                return
-            else:
-                raise e
-        if t_inst == "R":
-            binary = r_instruction(token_instruction, info)
-        elif t_inst == "I1" or t_inst == "I2":
-            binary = i_instruction(token_instruction, info)
-        elif t_inst == "S":
-            binary = s_instruction(token_instruction, info)
-        elif t_inst == "B":
-            binary = b_instruction(token_instruction, info, line)
-        elif t_inst == "U":
-            binary = u_instruction(token_instruction, info)
-        elif t_inst == "J":
-            binary = j_instruction(token_instruction, info, line)
+            return token_instruction, i
+        except ValueError:
+            pass
+
+def compile_instruction(token_instruction, info, t_inst, line):
+    if t_inst == "R":
+        binary = r_instruction(token_instruction, info)
+    elif t_inst == "I1" or t_inst == "I2" or t_inst == "I3":
+        binary = i_instruction(token_instruction, info)
+    elif t_inst == "S":
+        binary = s_instruction(token_instruction, info)
+    elif t_inst == "B":
+        binary = b_instruction(token_instruction, info, line)
+    elif t_inst == "U":
+        binary = u_instruction(token_instruction, info)
+    elif t_inst == "J":
+        binary = j_instruction(token_instruction, info, line)
+    return binary
+
+def instruction_manager(instruction, line):
+    info, t_inst = get_info(instruction, line)
+    if info:
+        if isinstance(info, list):
+            token_instruction, i = special_instruction(instruction, info)
+            info = info[i]
+        else:
+            re = regular_expression(info["inst"].keys(), info["re"])
+            try:
+                token_instruction = tokenize(instruction, re)
+            except ValueError as e:
+                match, equivalence = is_pseudo(instruction)
+                if match:
+                    compile_pseudo(equivalence, match, line)
+                    return
+                else:
+                    raise e
+        binary = compile_instruction(token_instruction, info, t_inst, line)
+        # print(token_instruction, binary)
         return binary
 
 def clean_instructions(instructions: str):
@@ -287,16 +313,17 @@ def main(file):
     for line, instruction in enumerate(instructions, 0):
         binary = instruction_manager(instruction, line)
         if binary:
-            BINARY_INSTRUCTIONS.append([binary, instruction])
+            BINARY_INSTRUCTIONS.append(binary)
 
 def valid(binary_instructions: list[str]):
     for i, element in enumerate(binary_instructions):
         binary = element[0].replace("-", "")
         if len(binary) != 32:
             print(f"Instruccion invalida: {i}\nBinario: {element[0]} Instruccion: {element[1]} len:{len(element[0])}")
-
-binary_instructions = main("./instruction.S")
-print(binary_instructions)
+# print(Bits(bin="100010000000").int)
+print(number_to_binary("3294967296", 32))
+main("./instruction.S")
+print(BINARY_INSTRUCTIONS)
 # valid(binary_instructions)
 
 values = ['00000000000000010000000010000011', '11111111110000100001000110000011', '00000000100000110010001010000011', '00000000110001000100001110000011', '00000001000001010101010010000011', '11111110101101100000011000100011', '00000000110101110001110000100011', '00000000111110000010111000100011', '00000000001100010000000010110011', '01000000011000101000001000110011', '00000001001010001111100000110011', '00000001010110100110100110110011', '00000001100010111100101100110011', '00000000111111010001110010110011', '00000000100011100101110110110011', '00000001111111110010111010110011', '11111100001000001000000011100011', '11111100010000011001111011100011', '11111110011000101100110011100011', '00000000100000111101011001100011', '11111011000111111111001001101111', '00000000000001001000000011100111', '00000000000001100100001000010111', '00000000000011001000001010110111', '00000001000011100000111010010011']

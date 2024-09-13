@@ -1,14 +1,5 @@
 label1:
-lb x1, 0(x2)     # Cargar byte
-lh x3, -4(x4)     # Cargar halfword
-lw x5, 8(x6)     # Cargar word
-lbu x7, 12(x8)   # Cargar byte sin extensión de signo
-lhu x9, 16(x10)  # Cargar halfword sin extensión de signo
-sb x11, -20(x12)  # Almacenar byte
-sh x13, 24(x14)  # Almacenar halfword
-sw x15, 28(x16)  # Almacenar word
-
-# Ejemplo de comentario
+la x3, 80000
 
 label2:
 add x1, x2, x3   # Suma
