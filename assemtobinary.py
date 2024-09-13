@@ -220,23 +220,13 @@ def cut_symbol(symbol: str, line=None):
         symbol = distance_label(symbol,line)
     except ValueError:
         pass
-        # if "0x" in symbol:
-        #     symbol = int(symbol, 16)
-        # else:
-        #     symbol = int(symbol)
+
     symbol = BitArray(uint=int(symbol), length=32)
-    print(symbol.int)
-    symbol <<= 12
-    # symbol = number_to_binary(symbol, 32)
+    symbol1 = symbol << 12    
     new_symbol = {
-        "symbol1": bin_to_decimal(symbol.bin[:20]),
-        "symbol2": bin_to_decimal(symbol.bin[:12]),
+        "symbol1": bin_to_decimal(symbol1.bin[:20]),
+        "symbol2": bin_to_decimal(symbol.bin[-12:]),
     }
-    # mask = (1 << 12) - 1
-    # new_symbol = {
-    #     "symbol1": symbol >> 20,
-    #     "symbol2": symbol & mask,
-    # }
     return new_symbol
 
 @singledispatch
