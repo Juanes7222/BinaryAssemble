@@ -79,9 +79,10 @@ def b_instruction(instruction: dict, info, line):
     
     label = instruction["label"]
     label = distance_label(label, line)
-    label = number_to_binary(label, 13)
     
     operation = instruction["operation"]
+        
+    label = number_to_binary(label, 13)
     funct3 = info["inst"][operation]["funct3"]
     opcode = info["opcode"]
     

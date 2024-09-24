@@ -19,7 +19,7 @@
     "^bgtu\\s+(?P<rs>\\w+),\\s*(?P<rt>\\w+),\\s*(?P<offset>\\w+)\\s*$": "bltu {rt}, {rs}, {offset}",
     "^bleu\\s+(?P<rs>\\w+),\\s*(?P<rt>\\w+),\\s*(?P<offset>\\w+)\\s*$": "bgeu {rt}, {rs}, {offset}",
     "^j\\s+(?P<offset>\\w+)\\s*$": "jal x0, {offset}",
-    "^jal\\s+(?P<offset>\\w+)\\s*": "jal x1, {offset}",
+    "^jal\\s+(?P<offset>\\w+)\\s*$": "jal x1, {offset}",
     "^jr\\s+(?P<rs>\\w+)\\s*$": "jalr x0, {rs}, 0",
     "^jalr\\s+(?P<rs>\\w+)\\s*$": "jalr x1, {rs}, 0",
     "^ret\\s*$": "jalr x0, x1, 0",
@@ -28,5 +28,5 @@
     "^li\\s+(?P<rd>\\w+),\\s*(?P<symbol>[+-]?\\d+|0[xX][0-9a-fA-F]+)\\s*$": ["lui {rd}, {symbol1}", "addi {rd}, {symbol2}"],
     "^l(?P<letter>[bhwd])\\s+(?P<rd>\\w+),\\s*(?P<symbol>[+-]?\\d+|0[xX][0-9a-fA-F]+)\\s*$": ["auipc {rd}, {symbol1}", "l{letter} {rd}, {symbol1}({rd})"],
     "^s(?P<letter>[bhwd])\\s+(?P<rd>\\w+),\\s*(?P<symbol>[+-]?\\d+|0[xX][0-9a-fA-F]+),\\s*(?P<rt>\\w+)\\s*$": ["auipc {rt}, {symbol1}", "s{letter} {rd}, {symbol2}({rt})"],
-    "la\\s+(?P<rd>\\w+),\\s*(?P<symbol>[+-]?\\d+|0[xX][0-9a-fA-F]+)": ["auipc {rd}, {symbol1}", "addi {rd}, {rd}, {symbol2}"]
+    "^la\\s+(?P<rd>\\w+),\\s*(?P<symbol>[+-]?\\d+|0[xX][0-9a-fA-F]+)\\s*$": ["auipc {rd}, {symbol1}", "addi {rd}, {rd}, {symbol2}"]
 }

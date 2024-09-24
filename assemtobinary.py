@@ -1,7 +1,8 @@
-from values import INSTRUCTIONS_FILE, BINARY_INSTRUCTIONS
+from values import INSTRUCTIONS_FILE, BINARY_INSTRUCTIONS, LABELS
 from functools import singledispatch
-from utils import get_instructions_info, read_file, sep_lines, confirm_label, is_pseudo, cut_symbol, get_all_labels
+from utils import get_instructions_info, read_file, sep_lines, confirm_label, is_pseudo, cut_symbol, values_prepare
 from compiler import r_instruction, i_instruction, b_instruction, u_instruction, s_instruction, j_instruction
+from files import push_info
 import re
 
 INFO: dict = get_instructions_info(INSTRUCTIONS_FILE)
@@ -17,11 +18,8 @@ def get_info(instruction, line=None):
     else:
         label = confirm_label(inst)
         if not label:
-            match, equivalence = is_pseudo(instruction)
-            if match != None:
-                compile_pseudo(equivalence, match, line)
-            else:
-                raise ValueError(f"Invalid instruction: {instruction} --> Line: {line}")
+            raise ValueError(f"Invalid instruction: {instruction} --> Line: {line}")
+        
     return None, None
 
 def get_instruction(instruction: str):
@@ -48,19 +46,19 @@ def tokenize(instruction, expression):
 @singledispatch
 def compile_pseudo(equivalence: str, match: dict, line: str|int):
     equivalence = equivalence.format(**match)
-    binary = instruction_manager(equivalence, line)
-    BINARY_INSTRUCTIONS.append(binary)
-
+    return [equivalence]
+  
 @compile_pseudo.register
 def _(equivalence: list, match: dict, line: str|int):
     equivalence = "|".join(equivalence)
-    match.update(cut_symbol(match["symbol"], line))
+    symbols = cut_symbol(match["symbol"], line)
+    if symbols is None:
+        return None
+    match.update(symbols)
     del match["symbol"]
     equivalence = equivalence.format(**match)
-    for eq in equivalence.split("|"):
-        binary = instruction_manager(eq, line)
-        BINARY_INSTRUCTIONS.append(binary)
-
+    return equivalence.split("|")
+   
 def special_instruction(instruction, info_instructions):
     for i, info in enumerate(info_instructions):
         re = regular_expression(info["inst"].keys(), info["re"])
@@ -95,15 +93,7 @@ def instruction_manager(instruction, line):
             info = info[i]
         else:
             re = regular_expression(info["inst"].keys(), info["re"])
-            try:
-                token_instruction = tokenize(instruction, re)
-            except ValueError as e:
-                match, equivalence = is_pseudo(instruction)
-                if match:
-                    compile_pseudo(equivalence, match, line)
-                    return
-                else:
-                    raise e
+            token_instruction = tokenize(instruction, re)
         binary = compile_instruction(token_instruction, info, t_inst, line)
         # print(token_instruction, binary)
         return binary
@@ -113,17 +103,56 @@ def clean_instructions(instructions: str):
     result = re.sub(r'\s*$', '', result, flags=re.MULTILINE)
     result = re.sub(r'^\s*', '', result, flags=re.MULTILINE)
     return result
+
+def get_all_labels(instructions: list, i=0, instructionsp=[]):
+    for instruction in instructions.copy():
+        label = confirm_label(instruction)
+        if label:
+            LABELS[label] = i
+            i -= 1
+            instructions.remove(instruction)
+        else:
+            match, equivalence = is_pseudo(instruction)
+            if isinstance(match, dict):
+                inst = compile_pseudo(equivalence, match, i)
+                if inst is None:
+                    instructions.remove(instruction)
+                    get_all_labels(instructions, i+1)
+                    inst = compile_instruction(equivalence, match, i)
+                instructionsp += inst
+                if len(inst) > 1:
+                    i += 1
+            else:
+                instructionsp.append(instruction)
+        i += 1
+    return instructionsp
     
+def pseudoinstructions(instructions: list):
+    i = 0
+    instructionsp = []
+    for instruction in instructions:
+        match, equivalence = is_pseudo(instruction)
+        if match:
+            inst = compile_pseudo(equivalence, match, i)
+            instructionsp += inst
+            i += 2
+        else:
+            instructionsp.append(instruction)
+            i += 1
+    return instructionsp
+            
 def main(file):
     instructions_file = read_file(file)
     instructions_file = clean_instructions(instructions_file)
     instructions = sep_lines(instructions_file)
-    get_all_labels(instructions)
+    # instructions = pseudoinstructions(instructions)
+    instructions = get_all_labels(instructions)
     
     for line, instruction in enumerate(instructions, 0):
         binary = instruction_manager(instruction, line)
         if binary:
             BINARY_INSTRUCTIONS.append(binary)
+    return BINARY_INSTRUCTIONS
 
 def valid(binary_instructions: list[str]):
     for i, element in enumerate(binary_instructions):
@@ -132,4 +161,13 @@ def valid(binary_instructions: list[str]):
             print(f"Instruccion invalida: {i}\nBinario: {element[0]} Instruccion: {element[1]} len:{len(element[0])}")
 
 main("./test.S")
-print(BINARY_INSTRUCTIONS)
+
+# expected = values_prepare()
+expected = ['00000000001100010000000010110011', '01000000011000101000001000110011', '00000000100101000100001110110011', '00000000110001011110010100110011', '00000000111101110111011010110011', '00000100110000010000001011100111', '00000001001010001001100000110011', '00000001010110100101100110110011', '01000001100010111101101100110011', '00000001101111010010110010110011', '00000001111011101011111000110011', '00000000101000010000000010010011', '00000000010100100111000110010011', '00000000111100110110001010010011', '00000000011101000100001110010011', '00000000000001010000010010000011', '00000000010001100001010110000011', '00000000100001110010011010000011', '00000000110010000100011110000011', '00000001000010010101100010000011', '00000000000100010000000000100011', '00000000001100100001001000100011', '00000000010100110010010000100011', '11111110100000111000000011100011', '00000000101001001001101001100011', '00000010110001011100011001100011', '11111100111001101101101011100011', '00010011100010000000000110010111', '10001000000000011000000110010011', '00000001000001111110111001100011', '00000011001010001111100001100011', '00000010110000000000100111101111', '00000000000010101000101001100111', '00000001000000000000101100110111', '00000010000000000000101110010111', '00000000000000000000000001110011', '00010011100010000000000110010111', '10001000000000011000000110010011', '00000000000000000000000000010011', '00000000000000010000000010010011', '11111111111100010100000010010011', '01000000001000000000000010110011', '00000000000100010011000010010011', '00000000001000000011000010110011', '00000000000000010010000010110011', '00000000001000000010000010110011', '11111000000000001000001011100011', '11111000000000001001000011100011', '11110110000100000101111011100011', '11110110000000001101110011100011', '11110110000000001100101011100011', '11110110000100000100100011100011', '11110110000100010100011011100011', '11110110000100010101010011100011', '11110110000100010110001011100011', '11110110000100010111000011100011']
+
+for value in BINARY_INSTRUCTIONS:
+    if not value in expected:
+        print(value)
+# push_info("./bin.bin", BINARY_INSTRUCTIONS)
+# print(BINARY_INSTRUCTIONS)
+# print(BINARY_INSTRUCTIONS)

@@ -20,11 +20,11 @@ def sep_lines(text: str):
     list_text = text.split("\n")
     return list(filter(None, list_text))
 
-def number_to_binary(number: int | str, length=4):
+def number_to_binary(number: int | str, length=4, signed=True):
     if isinstance(number, str):
         if "0x" in number:
             number = int(number, 16)
-    binary = int(number).to_bytes(length=5, signed=True)
+    binary = int(number).to_bytes(length=5, signed=signed)
     normal_binary = ''.join(format(byte, '08b') for byte in binary)
     return normal_binary[-length:]
 
@@ -56,22 +56,12 @@ def confirm_label(label):
     match = re.findall(r"(\w+):", label)
     if match:
         return match[0]
-
-
-def get_all_labels(instructions: list):
-    i = 0
-    for instruction in instructions.copy():
-        label = confirm_label(instruction)
-        if label:
-            LABELS[label] = i
-            i -= 1
-            instructions.remove(instruction)
-        i += 1
         
 def is_pseudo(instruction: str):
     for pattern, equivalence in PSEUDOINSTRUCTIONS.items():
         match = re.match(fr"{pattern}", instruction)
         if match:
+            dict_ = match.groupdict()
             return match.groupdict(), equivalence
     return False, False
 
@@ -79,7 +69,8 @@ def cut_symbol(symbol: str, line=None):
     try:
         symbol = distance_label(symbol,line)
     except ValueError:
-        pass
+        if confirm_label(symbol):
+            return None
 
     symbol = BitArray(uint=int(symbol), length=32)
     symbol1 = symbol << 12    
@@ -88,3 +79,9 @@ def cut_symbol(symbol: str, line=None):
         "symbol2": bin_to_decimal(symbol.bin[-12:]),
     }
     return new_symbol
+
+def values_prepare():
+    with open("./binary_values.txt", "r") as f:
+        txt = f.read()
+    list_ = txt.strip().split("\n")
+    return list_

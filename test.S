@@ -5,7 +5,7 @@ _start:
     xor x7, x8, x9    
     or x10, x11, x12  
     and x13, x14, x15 
-    jalr x5, 76(x2)
+    jalr x5, x2, 76
 
     sll x16, x17, x18 
     srl x19, x20, x21
@@ -35,6 +35,8 @@ label1:
     bne x9, x10, label2
     blt x11, x12, label3
     bge x13, x14, label1
+    la x3, 80000
+
     
 label2:
     bltu x15, x16, label3

@@ -1,3 +1,2 @@
 label1:
-ecall
-ebreak
+nop
