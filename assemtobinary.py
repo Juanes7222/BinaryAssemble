@@ -1,8 +1,8 @@
 from values import INSTRUCTIONS_FILE, BINARY_INSTRUCTIONS, LABELS
 from functools import singledispatch
-from utils import get_instructions_info, read_file, sep_lines, confirm_label, is_pseudo, cut_symbol, values_prepare
+from utils import get_instructions_info, read_file, sep_lines, confirm_label, is_pseudo, cut_symbol
 from compiler import r_instruction, i_instruction, b_instruction, u_instruction, s_instruction, j_instruction
-from files import push_info
+from files import push_info_bin, push_info_hex
 import re
 
 INFO: dict = get_instructions_info(INSTRUCTIONS_FILE)
@@ -137,7 +137,8 @@ def main(file):
         binary = instruction_manager(instruction, line)
         if binary:
             BINARY_INSTRUCTIONS.append(binary)
-    push_info("bin.bin", BINARY_INSTRUCTIONS)
+    push_info_bin("bin.bin", BINARY_INSTRUCTIONS)
+    push_info_hex("hex.hex", BINARY_INSTRUCTIONS)
     return BINARY_INSTRUCTIONS
 
 def valid(binary_instructions: list[str]):
@@ -146,6 +147,6 @@ def valid(binary_instructions: list[str]):
         if len(binary) != 32:
             print(f"Instruccion invalida: {i}\nBinario: {element[0]} Instruccion: {element[1]} len:{len(element[0])}")
 
-main("./test.S")
+print(main("./test.S"))
 
 
