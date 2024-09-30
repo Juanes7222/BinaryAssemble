@@ -25,7 +25,7 @@
     "^ret\\s*$": "jalr x0, x1, 0",
     "^call\\s+(?P<symbol>\\w+)\\s*$": ["auipc x1, {symbol1}", "jalr x1, x1, {symbol2}"],
     "^tail\\s+(?P<symbol>\\w+)\\s*$": ["auipc x6, {symbol1}", "jalr x0, x6, {symbol2}"],
-    "^li\\s+(?P<rd>\\w+),\\s*(?P<symbol>[+-]?\\d+|0[xX][0-9a-fA-F]+)\\s*$": ["lui {rd}, {symbol1}", "addi {rd}, {symbol2}"],
+    "^li\\s+(?P<rd>\\w+),\\s*(?P<symbol>[+-]?\\d+|0[xX][0-9a-fA-F]+)\\s*$": ["lui {rd}, {symbol1}", "addi {rd}, x0, {symbol2}"],
     "^l(?P<letter>[bhwd])\\s+(?P<rd>\\w+),\\s*(?P<symbol>[+-]?\\d+|0[xX][0-9a-fA-F]+)\\s*$": ["auipc {rd}, {symbol1}", "l{letter} {rd}, {symbol1}({rd})"],
     "^s(?P<letter>[bhwd])\\s+(?P<rd>\\w+),\\s*(?P<symbol>[+-]?\\d+|0[xX][0-9a-fA-F]+),\\s*(?P<rt>\\w+)\\s*$": ["auipc {rt}, {symbol1}", "s{letter} {rd}, {symbol2}({rt})"],
     "^la\\s+(?P<rd>\\w+),\\s*(?P<symbol>[+-]?\\d+|0[xX][0-9a-fA-F]+)\\s*$": ["auipc {rd}, {symbol1}", "addi {rd}, {rd}, {symbol2}"]

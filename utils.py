@@ -72,7 +72,7 @@ def cut_symbol(symbol: str, line=None):
         if confirm_label(symbol):
             return None
 
-    symbol = BitArray(uint=int(symbol), length=32)
+    symbol = BitArray(int=int(symbol), length=32)
     symbol1 = symbol << 12    
     new_symbol = {
         "symbol1": bin_to_decimal(symbol1.bin[:20]),
