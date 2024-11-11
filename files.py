@@ -28,3 +28,11 @@ def push_info_hex(file: str, info: list):
             address += 1
     ih.write_hex_file(file)
     
+def push_str(file: str, info: list):
+    with open(file, "w") as f:
+        for binary_str in info:
+            # Divide la cadena binaria en bloques de 8 bits
+            for i in range(0, len(binary_str), 8):
+                byte_chunk = binary_str[i:i+8]
+                f.write(byte_chunk + '\n')
+                
