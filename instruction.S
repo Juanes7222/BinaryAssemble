@@ -1,3 +1,3 @@
-addi x3, x0, 13
-addi x4, x0, 7
-add x5, x3, x4
+addi x2, x0, 7
+addi x3, x0, 2
+mul x1, x2, x3
