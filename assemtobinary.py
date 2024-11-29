@@ -97,6 +97,11 @@ def instruction_manager(instruction, line):
         binary = compile_instruction(token_instruction, info, t_inst, line)
         # print(token_instruction, binary)
         return binary
+    
+def sum_labels(line: int):
+    for label in LABELS.keys():
+        if LABELS.get(label) > line:
+            LABELS[label] += 1
 
 def clean_instructions(instructions: str):
     result = re.sub(r'#.*$', '', instructions, flags=re.MULTILINE)
@@ -104,26 +109,33 @@ def clean_instructions(instructions: str):
     result = re.sub(r'^\s*', '', result, flags=re.MULTILINE)
     return result
 
+def prepare_pseudos(instructions: list, i=0, instructionsp=[]):
+    for instruction in instructions:
+        match, equivalence = is_pseudo(instruction)
+        if isinstance(match, dict):
+            inst = compile_pseudo(equivalence, match, i)
+            if inst is None:
+                instructions.remove(instruction)
+                # get_all_labels(instructions, i+1)
+                inst = compile_instruction(equivalence, match, i)
+            instructionsp += inst
+            if len(inst) > 1:
+                sum_labels(i)
+                i += 1
+        else:
+            instructionsp.append(instruction)
+        i += 1
+    return instructionsp
+
 def get_all_labels(instructions: list, i=0, instructionsp=[]):
     for instruction in instructions.copy():
         label = confirm_label(instruction)
         if label:
             LABELS[label] = i
             i -= 1
-            instructions.remove(instruction)
+            instructions.remove(instruction)            
         else:
-            match, equivalence = is_pseudo(instruction)
-            if isinstance(match, dict):
-                inst = compile_pseudo(equivalence, match, i)
-                if inst is None:
-                    instructions.remove(instruction)
-                    get_all_labels(instructions, i+1)
-                    inst = compile_instruction(equivalence, match, i)
-                instructionsp += inst
-                if len(inst) > 1:
-                    i += 1
-            else:
-                instructionsp.append(instruction)
+            instructionsp.append(instruction)
         i += 1
     return instructionsp
     
@@ -132,6 +144,7 @@ def main(file):
     instructions_file = clean_instructions(instructions_file)
     instructions = sep_lines(instructions_file)
     instructions = get_all_labels(instructions)
+    instructions = prepare_pseudos(instructions)
     
     for line, instruction in enumerate(instructions, 0):
         binary = instruction_manager(instruction, line)
@@ -150,6 +163,6 @@ def valid(binary_instructions: list[str]):
         if len(binary) != 32:
             print(f"Instruccion invalida: {i}\nBinario: {element[0]} Instruccion: {element[1]} len:{len(element[0])}")
 
-print(main("./instruction.S"))
+print(len(main("./instruction.S")))
 
 
