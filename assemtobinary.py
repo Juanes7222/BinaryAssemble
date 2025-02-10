@@ -150,11 +150,11 @@ def main(file):
         binary = instruction_manager(instruction, line)
         if binary:
             BINARY_INSTRUCTIONS.append(binary)
-    push_info_bin("./output/bin.bin", BINARY_INSTRUCTIONS)
-    push_info_hex("./output/hex.hex", BINARY_INSTRUCTIONS)
+    push_info_bin("./output/Digital_bin.bin", BINARY_INSTRUCTIONS)
+    push_info_hex("./output/Digital_hex.hex", BINARY_INSTRUCTIONS)
     push_str_bin("./output/instructions.txt", BINARY_INSTRUCTIONS)
-    push_str_bin_quartus("./output/instructions_quartus.txt", BINARY_INSTRUCTIONS)
-    push_str_hex("./output/instructions_hex.hex", BINARY_INSTRUCTIONS)
+    push_str_bin_quartus("./output/instructions_bin_quartus.txt", BINARY_INSTRUCTIONS)
+    push_str_hex("./output/instructions_hex_quartus.hex", BINARY_INSTRUCTIONS)
     return BINARY_INSTRUCTIONS
 
 def valid(binary_instructions: list[str]):
