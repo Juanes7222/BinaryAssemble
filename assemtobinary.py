@@ -163,6 +163,6 @@ def valid(binary_instructions: list[str]):
         if len(binary) != 32:
             print(f"Instruccion invalida: {i}\nBinario: {element[0]} Instruccion: {element[1]} len:{len(element[0])}")
 
-print(len(main("./instruction.S")))
+print(len(main("./instructions.S")))
 
 
