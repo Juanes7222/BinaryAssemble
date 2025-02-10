@@ -7,7 +7,7 @@ import re
 
 INFO: dict = get_instructions_info(INSTRUCTIONS_FILE)
 
-def get_info(instruction, line=None):
+def get_info(instruction: str, line=None):
     inst = get_instruction(instruction.strip())
     t_inst = type_instruction(inst)
     
@@ -131,7 +131,7 @@ def get_all_labels(instructions: list, i=0, instructionsp=[]):
     for instruction in instructions.copy():
         label = confirm_label(instruction)
         if label:
-            LABELS[label] = i
+            LABELS[label.replace(":", "")] = i
             i -= 1
             instructions.remove(instruction)            
         else:

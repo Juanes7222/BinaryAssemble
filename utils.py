@@ -53,7 +53,7 @@ def distance_label(label, line):
 
 
 def confirm_label(label):
-    match = re.findall(r"(\w+):", label)
+    match = re.findall(r"\s*[a-zA-Z_][a-zA-Z0-9_]*\s*\(.*\):|\s*[a-zA-Z_.][a-zA-Z0-9_]*:", label)
     if match:
         return match[0]
         

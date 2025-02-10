@@ -199,7 +199,7 @@
             }
         },
         "opcode": "1100011",
-        "re": "^\\s*(expr)\\s+(?P<rs1>\\w+),\\s*(?P<rs2>\\w+),\\s*(?P<label>\\w+)\\s*$"
+        "re": "^\\s*(expr)\\s+(?P<rs1>\\w+),\\s*(?P<rs2>\\w+),\\s*(?P<label>[a-zA-Z_][a-zA-Z0-9_]*\\s*\\(.*\\)|[a-zA-Z_.][a-zA-Z0-9_]*)\\s*$"
     },
     "U": {
         "inst": {
@@ -219,7 +219,7 @@
             }
         },
         "opcode": "1101111",
-        "re": "^\\s*(expr)\\s+(?P<rd>\\w+),\\s*(?P<label>\\w+)\\s*$"
+        "re": "^\\s*(expr)\\s+(?P<rd>\\w+),\\s*(?P<label>[a-zA-Z_][a-zA-Z0-9_]*\\s*\\(.*\\)|[a-zA-Z_.][a-zA-Z0-9_]*)\\s*$"
     },
     "S": {
         "inst": {
