@@ -2,7 +2,7 @@ from values import INSTRUCTIONS_FILE, BINARY_INSTRUCTIONS, LABELS
 from functools import singledispatch
 from utils import get_instructions_info, read_file, sep_lines, confirm_label, is_pseudo, cut_symbol
 from compiler import r_instruction, i_instruction, b_instruction, u_instruction, s_instruction, j_instruction
-from files import push_info_bin, push_info_hex, push_str_bin, push_str_bin_quartus, push_str_hex
+from files import push_info_bin, push_info_hex, push_str_bin, push_str_bin_quartus, push_str_hex, push_info_complete
 import re
 
 INFO: dict = get_instructions_info(INSTRUCTIONS_FILE)
@@ -54,9 +54,12 @@ def _(equivalence: list, match: dict, line: str|int):
     symbols = cut_symbol(match["symbol"], line)
     if symbols is None:
         return None
+        
     match.update(symbols)
     del match["symbol"]
     equivalence = equivalence.format(**match)
+    if symbols["symbol1"] == 0:
+        return equivalence.split("|")[1:]
     return equivalence.split("|")
    
 def special_instruction(instruction, info_instructions):
@@ -155,6 +158,7 @@ def main(file):
     push_str_bin("./output/instructions.txt", BINARY_INSTRUCTIONS)
     push_str_bin_quartus("./output/instructions_bin_quartus.txt", BINARY_INSTRUCTIONS)
     push_str_hex("./output/instructions_hex_quartus.hex", BINARY_INSTRUCTIONS)
+    push_info_complete("./output/instructions_complete.txt", BINARY_INSTRUCTIONS)
     return BINARY_INSTRUCTIONS
 
 def valid(binary_instructions: list[str]):

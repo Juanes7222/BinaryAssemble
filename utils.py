@@ -65,18 +65,31 @@ def is_pseudo(instruction: str):
             return match.groupdict(), equivalence
     return False, False
 
+def fits_in_12_bits(n: int) -> bool:
+    try:
+        Bits(int=n, length=12)  # Intenta representarlo en 12 bits con signo
+        return True
+    except ValueError:
+        return False
+
 def cut_symbol(symbol: str, line=None):
     try:
         symbol = distance_label(symbol,line)
     except ValueError:
         if confirm_label(symbol):
             return None
+    
+    binary_symbol = BitArray(int=int(symbol), length=32)
+    if fits_in_12_bits(symbol):
+        return {
+            "symbol1": 0,
+            "symbol2": bin_to_decimal(binary_symbol.bin[-12:]),
+        }
 
-    symbol = BitArray(int=int(symbol), length=32)
-    symbol1 = symbol << 12    
+    symbol1 = binary_symbol << 12    
     new_symbol = {
         "symbol1": bin_to_decimal(symbol1.bin[:20]),
-        "symbol2": bin_to_decimal(symbol.bin[-12:]),
+        "symbol2": bin_to_decimal(binary_symbol.bin[-12:]),
     }
     return new_symbol
 

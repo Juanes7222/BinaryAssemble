@@ -15,6 +15,11 @@ def push_info_bin(file: str, info: list):
     with open(file, "wb") as f:
             f.write(byte_data)
             
+def push_info_complete(file: str, info: list):
+    with open(file, "w") as f:
+        for instruction in info:
+            f.write(instruction + '\n')
+            
 def push_info_hex(file: str, info: list):
     ih = IntelHex()
     address = 0
